@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>signal</title>
+<style>
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+body {
+  margin: 0;
+  background: #000;
+  color: #f5f1ec;
+  height: 100vh;
+  overflow: hidden;
+  font-family: monospace;
+  touch-action: none;
+}
+
+.grid {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(22, 1fr);
+  grid-template-rows: repeat(16, 1fr);
+  padding: 30px;
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  transition: .25s ease;
+  opacity: .7;
+}
+
+.sig {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f5f1ec;
+  text-decoration: none;
+  font: 13px system-ui;
+  opacity: .5;
+}
+</style>
+</head>
+<body>
+
+<div class="grid" id="grid"></div>
+<a class="sig" href="https://haylortall.github.io/">♡ taylor</a>
+
+<script>
+const symbols = ["+","×","•","◌","*","·","□","◇"];
+const grid = document.getElementById("grid");
+const cells = [];
+let pointer = { x: -999, y: -999 };
+
+for (let i = 0; i < 352; i++) {
+  const c = document.createElement("div");
+  c.className = "cell";
+  c.textContent = "+";
+  grid.appendChild(c);
+  cells.push(c);
+}
+
+function move(x, y) {
+  pointer = { x, y };
+}
+
+addEventListener("mousemove", e => move(e.clientX, e.clientY));
+addEventListener("touchmove", e => {
+  move(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: true });
+
+addEventListener("touchend", () => {
+  pointer = { x: -999, y: -999 };
+});
+
+function tick() {
+  cells.forEach(c => {
+    const r = c.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const cy = r.top + r.height / 2;
+    const dx = cx - pointer.x;
+    const dy = cy - pointer.y;
+    const d = Math.hypot(dx, dy);
+    const force = Math.max(0, 1 - d / 160);
+
+    c.style.transform = `
+      translate(${dx * force * .18}px, ${dy * force * .18}px)
+      rotate(${force * 90}deg)
+      scale(${1 + force * .6})
+    `;
+
+    c.style.opacity = .35 + force * .65;
+
+    if (force > .35 && Math.random() < .08) {
+      c.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    }
+  });
+
+  requestAnimationFrame(tick);
+}
+
+tick();
+</script>
+</body>
+</html>
